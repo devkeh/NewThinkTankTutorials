@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="red_theme_base">#b02224</color>
+
+    <color name="nav_list_item_title">#fff</color>
+    <color name="nav_list_background">#303030</color>
+    <color name="nav_list_background_pressed">@color/red_theme_base</color>
+    <color name="nav_list_divider">#272727</color>
+
+    <string-array name="thumbnail_loading_colors">
+        <item>#ed5321</item>
+        <item>#8c2600</item>
+        <item>#426114</item>
+        <item>#1a3502</item>
+        <item>#004e43</item>
+        <item>#403e41</item>
+        <item>#292b76</item>
+        <item>#4c4da0</item>
+        <item>#7469ae</item>
+        <item>#854021</item>
+        <item>#006298</item>
+        <item>#55b746</item>
+        <item>#197e3a</item>
+    </string-array>
+</resources>
