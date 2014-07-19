@@ -3,6 +3,7 @@ package com.appinforium.newthinktanktutorials.data;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
@@ -104,8 +105,8 @@ public class AppDataContentProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
 
-        int uriType = uriMatcher.match(uri);
-        SQLiteDatabase db = appDatabase.getWritableDatabase();
+        final int uriType = uriMatcher.match(uri);
+        final SQLiteDatabase db = appDatabase.getWritableDatabase();
 
         switch (uriType) {
             case PLAYLISTS:
@@ -155,7 +156,29 @@ public class AppDataContentProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri, ContentValues contentValues, String s, String[] strings) {
-        return 0;
+    public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+        final SQLiteDatabase db = appDatabase.getWritableDatabase();
+        final SelectionBuilder builder = new SelectionBuilder();
+        final int uriType = uriMatcher.match(uri);
+        int count;
+        switch (uriType) {
+            case PLAYLIST_ID:
+                String id = uri.getLastPathSegment();
+                count = builder.table(AppDatabase.TABLE_PLAYLISTS)
+                        .where(AppDatabase.COL_ID + "=?", id)
+                        .where(selection, selectionArgs)
+                        .update(db, contentValues);
+                break;
+            case VIDEO_ID:
+                count = builder.table(AppDatabase.TABLE_VIDEOS)
+                        .where(AppDatabase.COL_ID + "=?", uri.getLastPathSegment())
+                        .where(selection, selectionArgs)
+                        .update(db, contentValues);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        getContext().getContentResolver().notifyChange(uri, null, false);
+        return count;
     }
 }

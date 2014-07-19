@@ -25,6 +25,8 @@ public class AppDatabase extends SQLiteOpenHelper {
     public static final String COL_PUBLISHED_AT = "published_at";
     public static final String COL_THUMBNAIL_URL = "thumbnail_url";
     public static final String COL_POSITION = "position";
+    public static final String COL_ITEM_COUNT = "item_count";
+    public static final String COL_BOOKMARKED = "bookmarked";
 
     // Table constructor SQL Statements
     private static final String CREATE_TABLE_PLAYLISTS = "CREATE TABLE " + TABLE_PLAYLISTS
@@ -33,6 +35,7 @@ public class AppDatabase extends SQLiteOpenHelper {
             + COL_PLAYLIST_ID + " text UNIQUE not null, "
             + COL_DESCRIPTION + " text, "
             + COL_PUBLISHED_AT + " datetime not null, "
+            + COL_ITEM_COUNT + " integer, "
             + COL_THUMBNAIL_URL + " text);";
 
     private static final String CREATE_TABLE_VIDEOS = "CREATE TABLE " + TABLE_VIDEOS
@@ -43,6 +46,7 @@ public class AppDatabase extends SQLiteOpenHelper {
             + COL_DESCRIPTION + " text not null, "
             + COL_THUMBNAIL_URL + " text not null, "
             + COL_PUBLISHED_AT + " datetime not null, "
+            + COL_BOOKMARKED + " int not null default 0, "
             + COL_POSITION + " integer not null);";
 
     public AppDatabase(Context context) {

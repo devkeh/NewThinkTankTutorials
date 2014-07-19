@@ -23,10 +23,12 @@
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:padding="5dp"
             android:textStyle="bold"
             android:id="@+id/gridItemVideoTitleTextView"
+            android:ellipsize="end"
+            android:maxLines="4"
             android:text="Playlist Title Will Go Here"/>
 
 

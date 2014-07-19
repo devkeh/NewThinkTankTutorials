@@ -38,7 +38,7 @@ public class PlaylistsGridFragment extends Fragment implements AdapterView.OnIte
         super.onActivityCreated(savedInstanceState);
 
         String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_THUMBNAIL_URL,
-                AppDatabase.COL_TITLE};
+                AppDatabase.COL_TITLE, AppDatabase.COL_ITEM_COUNT};
 
         Cursor cursor = getActivity().getContentResolver().query(AppDataContentProvider.CONTENT_URI_PLAYLISTS,
                 projection, null, null, null);

@@ -3,7 +3,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_margin="7dp"
+    android:layout_margin="5dp"
     android:background="@drawable/container_dropshadow"
     android:layout_height="match_parent">
 
@@ -22,31 +22,37 @@
                 android:paddingRight="@dimen/activity_horizontal_margin"
                 android:orientation="horizontal" >
 
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:layout_weight="3"
+                    android:padding="5dp"
+                    android:id="@+id/videoDetailThumbnailImageView"
+                    android:src="@drawable/no_thumbnail" />
+
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="2"
                     android:textSize="20sp"
-                    android:padding="@dimen/activity_vertical_margin"
+                    android:padding="5dp"
                     android:id="@+id/videoTitleTextView"
                     android:text="Video Title"/>
 
-                <Button
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="3"
-                    android:id="@+id/watchVideoButton"
-                    android:text="Watch"/>
 
             </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="@dimen/activity_vertical_margin"
+                android:padding="5dp"
                 android:scrollbars="vertical"
                 android:isScrollContainer="true"
                 android:id="@+id/videoDescriptionTextView"
+                android:autoLink="all"
                 android:text="Description" />
 
         </LinearLayout>

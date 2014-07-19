@@ -5,6 +5,7 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -20,13 +21,12 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.appinforium.newthinktanktutorials.adapter.NavDrawerListAdapter;
-import com.appinforium.newthinktanktutorials.adapter.VideosCursorAdapter;
 import com.appinforium.newthinktanktutorials.data.AppDataContentProvider;
 import com.appinforium.newthinktanktutorials.data.AppDatabase;
 import com.appinforium.newthinktanktutorials.model.NavDrawerItem;
@@ -38,39 +38,41 @@ import java.util.ArrayList;
 
 public class MainActivity extends Activity implements
         PlaylistsGridFragment.OnPlaylistSelectedListener,
-        VideosGridFragment.OnVideoSelectedListener  {
+        VideosGridFragment.OnVideoSelectedListener,
+        VideoDetailFragment.OnWatchVideoClickedListener,
+        VideoDetailFragment.OnBookmarkVideoClickedListener {
+
 
     private static final String DEBUG_TAG = "MainActivity";
+    private static final String TITLE = "TITLE";
 
     private DrawerLayout drawerLayout;
     private ListView drawerListView;
-    private String[] navMenuTitles;
-    private ArrayList<NavDrawerItem> navDrawerItems;
-    private NavDrawerListAdapter navDrawerListAdapter;
+
     private ActionBarDrawerToggle drawerToggle;
     // nav drawer title
     private CharSequence drawerTitle;
 
     // used to store app title
-    private CharSequence navTitle;
-
+    private CharSequence curActionBarTitle;
 
     // Menu Identifiers
     private final static int TOPICS = 0;
     private final static int MOST_RECENT = 1;
+    private final static int BOOKMARKED = 2;
     private final static int ABOUT = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        navTitle = drawerTitle = getTitle();
 
-        Intent intent = new Intent(this, PlaylistsUpdaterIntentService.class);
-        intent.putExtra(PlaylistsUpdaterIntentService.CHANNEL_ID,
-                getResources().getString(R.string.channel_id));
-        startService(intent);
+        String[] navMenuTitles;
+        ArrayList<NavDrawerItem> navDrawerItems;
+        NavDrawerListAdapter navDrawerListAdapter;
 
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerListView = (ListView) findViewById(R.id.nav_list_view);
@@ -97,13 +99,13 @@ public class MainActivity extends Activity implements
                 R.string.app_name // nav drawer close - description for accessibility
         ){
             public void onDrawerClosed(View view) {
-                getActionBar().setTitle(navTitle);
+                getActionBar().setTitle(curActionBarTitle);
                 // calling onPrepareOptionsMenu() to show action bar icons
                 invalidateOptionsMenu();
             }
 
             public void onDrawerOpened(View drawerView) {
-                getActionBar().setTitle(drawerTitle);
+                getActionBar().setTitle(getResources().getString(R.string.app_name));
                 // calling onPrepareOptionsMenu() to hide action bar icons
                 invalidateOptionsMenu();
             }
@@ -116,6 +118,11 @@ public class MainActivity extends Activity implements
 
         if (savedInstanceState == null) {
             displayMenuFragment(TOPICS);
+            Intent intent = new Intent(this, PlaylistsUpdaterIntentService.class);
+            intent.putExtra(PlaylistsUpdaterIntentService.CHANNEL_ID,
+                getResources().getString(R.string.channel_id));
+            startService(intent);
+            setProgressBarIndeterminateVisibility(true);
         } else {
 
             FragmentManager fragmentManager = getFragmentManager();
@@ -126,13 +133,15 @@ public class MainActivity extends Activity implements
                 drawerToggle.setDrawerIndicatorEnabled(false);
             }
 
-            setTitle(navTitle);
+            setTitle(savedInstanceState.getString(TITLE));
         }
+
     }
 
     private void displayMenuFragment(int menuPosition) {
 
         Fragment fragment = null;
+        Bundle args = null;
 
         switch (menuPosition) {
             case TOPICS:
@@ -142,10 +151,20 @@ public class MainActivity extends Activity implements
                 break;
             case MOST_RECENT:
                 fragment = new VideosGridFragment();
-                Bundle args = new Bundle();
+                args = new Bundle();
                 args.putString(VideosGridFragment.SORT_ORDER, AppDatabase.COL_PUBLISHED_AT + " DESC LIMIT 20");
                 fragment.setArguments(args);
                 setTitle("Most Recent");
+                break;
+            case BOOKMARKED:
+                fragment = new VideosGridFragment();
+                args = new Bundle();
+                args.putString(VideosGridFragment.SELECTION, AppDatabase.COL_BOOKMARKED + "=?");
+                String[] selectionArgs = {"1"};
+                args.putStringArray(VideosGridFragment.SELECTION_ARGS, selectionArgs);
+                args.putString(VideosGridFragment.EMPTY_MSG, "You have no bookmarks.");
+                fragment.setArguments(args);
+                setTitle("Bookmarks");
                 break;
             case ABOUT:
                 fragment = new AboutFragment();
@@ -204,7 +223,10 @@ public class MainActivity extends Activity implements
             Intent intent = new Intent(this, PlaylistUpdaterIntentService.class);
             intent.putExtra(PlaylistUpdaterIntentService.PLAYLIST_ID, playlistId);
             startService(intent);
+            setProgressBarIndeterminateVisibility(true);
         }
+
+        cursor.close();
 
 //        displayFragment(PLAYLIST_GRID_FRAGMENT);
     }
@@ -227,6 +249,38 @@ public class MainActivity extends Activity implements
 
     }
 
+    @Override
+    public void onWatchVideoClicked(String videoId) {
+        VideoPlayerFragment videoPlayerFragment = new VideoPlayerFragment();
+
+        Bundle args = new Bundle();
+        args.putString(VideoPlayerFragment.VIDEO_ID, videoId);
+        videoPlayerFragment.setArguments(args);
+
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.replace(R.id.content_frame, videoPlayerFragment);
+        fragmentTransaction.commit();
+
+    }
+
+    @Override
+    public void onBookmarkVideoClicked(long videoIndex, boolean bookmarked) {
+
+        Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_VIDEOS, String.valueOf(videoIndex));
+
+        ContentValues contentValues = new ContentValues();
+
+        if (bookmarked) {
+            contentValues.put(AppDatabase.COL_BOOKMARKED, "1");
+        } else {
+            contentValues.put(AppDatabase.COL_BOOKMARKED, "0");
+        }
+        Log.d(DEBUG_TAG, "Bookmarked Video _ID " + videoIndex);
+        getContentResolver().update(content_uri, contentValues, null, null);
+    }
+
 
     private class NavMenuClickListener implements ListView.OnItemClickListener {
 
@@ -240,6 +294,14 @@ public class MainActivity extends Activity implements
     protected void onResume() {
         super.onResume();
         registerReceiver(broadcastReceiver, new IntentFilter(PlaylistsUpdaterIntentService.NOTIFICATION));
+        registerReceiver(broadcastReceiver, new IntentFilter(PlaylistUpdaterIntentService.NOTIFICATION));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(TITLE, String.valueOf(getActionBar().getTitle()));
+        super.onSaveInstanceState(outState);
+
     }
 
     @Override
@@ -256,6 +318,14 @@ public class MainActivity extends Activity implements
         return true;
     }
 
+    // Called whenever invalidateOptionsMenu() is called
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -268,7 +338,8 @@ public class MainActivity extends Activity implements
         }
 
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_exit) {
+            finish();
             return true;
         }
         if (id == android.R.id.home) {
@@ -285,7 +356,7 @@ public class MainActivity extends Activity implements
 
     @Override
     public void setTitle(CharSequence title) {
-        navTitle = title;
+        curActionBarTitle = title;
         getActionBar().setTitle(title);
     }
 
@@ -318,9 +389,12 @@ public class MainActivity extends Activity implements
                 int resultCode = bundle.getInt(PlaylistsUpdaterIntentService.RESULT);
                 if (resultCode == RESULT_OK) {
                     Log.d(DEBUG_TAG, "Playlists updated");
+
                 } else {
                     Toast.makeText(getApplicationContext(), "Playlists update failed", Toast.LENGTH_LONG).show();
                 }
+
+                setProgressBarIndeterminateVisibility(false);
             }
         }
     };

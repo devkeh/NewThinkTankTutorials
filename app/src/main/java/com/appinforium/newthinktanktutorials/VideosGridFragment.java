@@ -1,7 +1,9 @@
 package com.appinforium.newthinktanktutorials;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.appinforium.newthinktanktutorials.adapter.VideosCursorAdapter;
 import com.appinforium.newthinktanktutorials.data.AppDataContentProvider;
@@ -22,6 +26,7 @@ public class VideosGridFragment extends Fragment implements AdapterView.OnItemCl
     public static final String SELECTION = "SELECTION_ARG";
     public static final String SELECTION_ARGS = "SELECTION_ARGS_ARG";
     public static final String SORT_ORDER = "SORT_ORDER_ARG";
+    public static final String EMPTY_MSG = "EMPTY_MSG_ARG";
 
     private String selection;
     private String[] selectionArgs;
@@ -38,10 +43,20 @@ public class VideosGridFragment extends Fragment implements AdapterView.OnItemCl
 
         videosGridView.setOnItemClickListener(this);
 
+        TextView emptyTextView = (TextView) view.findViewById(R.id.empty);
+        emptyTextView.setTextColor(Color.parseColor("#000000"));
+
+        videosGridView.setEmptyView(emptyTextView);
+
         Bundle args = getArguments();
         selection = args.getString(SELECTION);
         selectionArgs = args.getStringArray(SELECTION_ARGS);
         sortOrder = args.getString(SORT_ORDER);
+        String emptyMsg = args.getString(EMPTY_MSG);
+
+        if (emptyMsg != null) {
+            emptyTextView.setText(emptyMsg);
+        }
 
         return view;
     }
@@ -58,7 +73,6 @@ public class VideosGridFragment extends Fragment implements AdapterView.OnItemCl
 
         VideosCursorAdapter adapter = new VideosCursorAdapter(getActivity(), cursor, true);
         videosGridView.setAdapter(adapter);
-
     }
 
     @Override

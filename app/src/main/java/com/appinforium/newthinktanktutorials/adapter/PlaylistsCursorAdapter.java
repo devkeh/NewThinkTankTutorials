@@ -53,6 +53,7 @@ public class PlaylistsCursorAdapter extends CursorAdapter {
         holder.thumbnailLoadingBitmap = bitmap;
 
         holder.titleTextView = (TextView) itemLayout.findViewById(R.id.gridItemPlaylistsTitleTextView);
+        holder.itemCountTextView = (TextView) itemLayout.findViewById(R.id.gridItemPlaylistsItemCountTextView);
 
         itemLayout.setTag(holder);
         return itemLayout;
@@ -65,6 +66,9 @@ public class PlaylistsCursorAdapter extends CursorAdapter {
 
         holder.titleTextView.setText(cursor.getString(cursor.getColumnIndex(AppDatabase.COL_TITLE)));
 
+        String videoCount = cursor.getString(cursor.getColumnIndex(AppDatabase.COL_ITEM_COUNT)) + " Videos";
+        holder.itemCountTextView.setText(videoCount);
+
         Picasso.with(context)
                 .load(cursor.getString(cursor.getColumnIndex(AppDatabase.COL_THUMBNAIL_URL)))
                 .placeholder(new BitmapDrawable(holder.thumbnailLoadingBitmap))
@@ -75,6 +79,7 @@ public class PlaylistsCursorAdapter extends CursorAdapter {
     private static class ViewHolder {
         ImageView thumbnailImageView;
         TextView titleTextView;
+        TextView itemCountTextView;
         Bitmap thumbnailLoadingBitmap;
     }
 }

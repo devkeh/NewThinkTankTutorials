@@ -1,15 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<GridView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="match_parent"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:numColumns="auto_fit"
-    android:gravity="center"
-    android:columnWidth="250dp"
-    android:background="#e5e5e5"
-    android:verticalSpacing="0dp"
-    android:horizontalSpacing="0dp"
-    android:padding="5dp"
-    android:id="@+id/videosGridView">
-</GridView>
+    android:layout_height="match_parent">
+    <GridView
+
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:numColumns="auto_fit"
+        android:gravity="center"
+        android:columnWidth="250dp"
+        android:background="#e5e5e5"
+        android:verticalSpacing="0dp"
+        android:horizontalSpacing="0dp"
+        android:padding="5dp"
+        android:id="@+id/videosGridView">
+    </GridView>
+
+    <TextView
+        android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="Loading..."
+        android:gravity="center_vertical|center_horizontal"
+        android:textColor="#000000" />
+
+</LinearLayout>

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.util.Log;
 
 import com.appinforium.newthinktanktutorials.R;
@@ -42,11 +44,11 @@ public class PlaylistsUpdaterIntentService extends IntentService {
         String channelId = intent.getStringExtra(CHANNEL_ID);
         if (channelId != null) {
             String strUrl = String.format(
-                    "https://www.googleapis.com/youtube/v3/playlists?part=snippet&maxResults=%s&channelId=%s&key=%s",
+                    "https://www.googleapis.com/youtube/v3/playlists?part=contentDetails,+snippet&maxResults=%s&channelId=%s&key=%s",
                     getResources().getString(R.string.api_max_results),
                     channelId, getResources().getString(R.string.youtube_api_key));
 
-            if (!processRequest(strUrl)) {
+            if (!getPlaylists(strUrl)) {
                 Log.e(DEBUG_TAG, "processRequest failed.");
                 publishResult(Activity.RESULT_CANCELED);
             } else {
@@ -54,12 +56,12 @@ public class PlaylistsUpdaterIntentService extends IntentService {
             }
         }
     }
-    private boolean processRequest(String strUrl) {
+
+    private boolean getPlaylists(String strUrl) {
         boolean succeeded = true;
         boolean lastPage = true;
         String nextPageToken = null;
         URL apiUrl;
-        String[] allowed_playlist_ids = getResources().getStringArray(R.array.allowed_playlist_ids);
 
         do {
 
@@ -97,6 +99,9 @@ public class PlaylistsUpdaterIntentService extends IntentService {
 
                         String playlistId = item.getString("id");
 
+                        JSONObject contentDetails = item.getJSONObject("contentDetails");
+                        int itemCount = contentDetails.getInt("itemCount");
+
                         JSONObject snippet = item.getJSONObject("snippet");
 
                         String title = snippet.getString("title");
@@ -108,6 +113,12 @@ public class PlaylistsUpdaterIntentService extends IntentService {
 
                         String thumbnailUrl = thumbnail.getString("url");
 
+                        String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_PLAYLIST_ID};
+                        String selection = AppDatabase.COL_PLAYLIST_ID + " = ? ";
+                        String[] selectionArgs = {playlistId};
+                        Cursor cursor = getContentResolver().query(AppDataContentProvider.CONTENT_URI_PLAYLISTS,
+                                projection, selection, selectionArgs, null);
+
                         ContentValues contentValues = new ContentValues();
 
                         contentValues.put(AppDatabase.COL_TITLE, title);
@@ -115,13 +126,23 @@ public class PlaylistsUpdaterIntentService extends IntentService {
                         contentValues.put(AppDatabase.COL_PLAYLIST_ID, playlistId);
                         contentValues.put(AppDatabase.COL_THUMBNAIL_URL, thumbnailUrl);
                         contentValues.put(AppDatabase.COL_PUBLISHED_AT, publishedAt);
+                        contentValues.put(AppDatabase.COL_ITEM_COUNT, itemCount);
 
-//                        for (String playlist_id : allowed_playlist_ids) {
-//                            if (playlist_id.equals(playlistId)) {
-                                getContentResolver().insert(AppDataContentProvider.CONTENT_URI_PLAYLISTS,
+                        if (cursor.moveToFirst()) {
+                            Log.d(DEBUG_TAG, "Updating playlist_id: " + playlistId);
+                            Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_PLAYLISTS,
+                                    cursor.getString(cursor.getColumnIndex(AppDatabase.COL_ID)));
+                            getContentResolver().update(content_uri, contentValues, null, null);
+
+                        } else {
+                            Log.d(DEBUG_TAG, "Inserting playlist_id: " + playlistId);
+                            getContentResolver().insert(AppDataContentProvider.CONTENT_URI_PLAYLISTS,
                                         contentValues);
-//                            }
-//                        }
+
+                        }
+
+                        cursor.close();
+
 
                     }
 

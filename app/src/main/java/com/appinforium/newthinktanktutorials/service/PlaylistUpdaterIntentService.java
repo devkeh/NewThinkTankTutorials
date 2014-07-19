@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -115,7 +116,6 @@ public class PlaylistUpdaterIntentService extends IntentService {
                         JSONObject resourceId = snippet.getJSONObject("resourceId");
 
                         String videoId = resourceId.getString("videoId");
-                        Log.d(DEBUG_TAG, "videoId " + videoId);
 
                         ContentValues videoData = new ContentValues();
 
@@ -127,9 +127,26 @@ public class PlaylistUpdaterIntentService extends IntentService {
                         videoData.put(AppDatabase.COL_PUBLISHED_AT, publishedAt);
                         videoData.put(AppDatabase.COL_POSITION, Integer.valueOf(position));
 
+                        String selection = "video_id = ?";
+                        String[] selectionArgs = {videoId};
+                        String[] projection = {AppDatabase.COL_ID};
+
+                        Cursor cursor = getContentResolver().query(AppDataContentProvider.CONTENT_URI_VIDEOS,
+                                projection, selection, selectionArgs, null);
+
+                        if (cursor.moveToFirst()) {
+                            Log.d(DEBUG_TAG, "Updating video_id: " + videoId);
+                            Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_VIDEOS,
+                                    cursor.getString(cursor.getColumnIndex(AppDatabase.COL_ID)));
+                            getContentResolver().update(content_uri, videoData, null, null);
+                        } else {
+                            Log.d(DEBUG_TAG, "Inserting video_id: " + videoId);
+                            getContentResolver().insert(AppDataContentProvider.CONTENT_URI_VIDEOS, videoData);
+                        }
+
+                        cursor.close();
 //                        Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_VIDEOS, playlistId);
 
-                        getContentResolver().insert(AppDataContentProvider.CONTENT_URI_VIDEOS, videoData);
 
                     }
 
