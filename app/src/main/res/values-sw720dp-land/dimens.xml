@@ -1,0 +1,4 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <integer name="grid_num_columns">4</integer>
+</resources>

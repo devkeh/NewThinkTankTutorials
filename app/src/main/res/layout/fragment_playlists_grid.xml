@@ -2,14 +2,15 @@
 
 <GridView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
-    android:numColumns="auto_fit"
-    android:gravity="center"
-    android:columnWidth="250dp"
+    android:numColumns="@integer/grid_num_columns"
+
     android:background="#e5e5e5"
     android:verticalSpacing="0dp"
     android:horizontalSpacing="0dp"
     android:padding="5dp"
+    tools:listitem="@layout/grid_item_playlists"
     android:id="@+id/playlistsGridView">
 </GridView>

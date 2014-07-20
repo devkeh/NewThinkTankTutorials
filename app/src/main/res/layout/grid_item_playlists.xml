@@ -13,6 +13,7 @@
         android:layout_weight="4"
         android:padding="5dp"
         android:adjustViewBounds="true"
+        android:src="@drawable/no_thumbnail"
         android:id="@+id/gridItemPlaylistsThumbnailImageView" />
 
     <LinearLayout
@@ -26,6 +27,8 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:textStyle="bold"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:id="@+id/gridItemPlaylistsTitleTextView"
             android:text="Playlist Title Will Go Here"/>
 
