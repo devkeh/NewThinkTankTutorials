@@ -30,6 +30,7 @@ import com.appinforium.newthinktanktutorials.adapter.NavDrawerListAdapter;
 import com.appinforium.newthinktanktutorials.data.AppDataContentProvider;
 import com.appinforium.newthinktanktutorials.data.AppDatabase;
 import com.appinforium.newthinktanktutorials.model.NavDrawerItem;
+import com.appinforium.newthinktanktutorials.service.ArticlesUpdaterIntentService;
 import com.appinforium.newthinktanktutorials.service.PlaylistUpdaterIntentService;
 import com.appinforium.newthinktanktutorials.service.PlaylistsUpdaterIntentService;
 
@@ -40,7 +41,9 @@ public class MainActivity extends Activity implements
         PlaylistsGridFragment.OnPlaylistSelectedListener,
         VideosGridFragment.OnVideoSelectedListener,
         VideoDetailFragment.OnWatchVideoClickedListener,
-        VideoDetailFragment.OnBookmarkVideoClickedListener {
+        VideoDetailFragment.OnBookmarkVideoClickedListener,
+        VideoPlayerFragment.OnVideoDetailsListener,
+        ArticlesListFragment.OnArticleClickedListener {
 
 
     private static final String DEBUG_TAG = "MainActivity";
@@ -60,11 +63,12 @@ public class MainActivity extends Activity implements
     private final static int TOPICS = 0;
     private final static int MOST_RECENT = 1;
     private final static int BOOKMARKED = 2;
+    private final static int ARTICLES = 3;
     private final static int ABOUT = 4;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+//        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -122,7 +126,9 @@ public class MainActivity extends Activity implements
             intent.putExtra(PlaylistsUpdaterIntentService.CHANNEL_ID,
                 getResources().getString(R.string.channel_id));
             startService(intent);
-            setProgressBarIndeterminateVisibility(true);
+
+
+
         } else {
 
             FragmentManager fragmentManager = getFragmentManager();
@@ -166,6 +172,12 @@ public class MainActivity extends Activity implements
                 fragment.setArguments(args);
                 setTitle("Bookmarks");
                 break;
+            case ARTICLES:
+                fragment = new ArticlesListFragment();
+                setTitle("Articles");
+                Intent intent = new Intent(this, ArticlesUpdaterIntentService.class);
+                startService(intent);
+                break;
             case ABOUT:
                 fragment = new AboutFragment();
                 setTitle("About");
@@ -176,7 +188,8 @@ public class MainActivity extends Activity implements
 
             FragmentManager fragmentManager = getFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
- //            fragmentTransaction.setCustomAnimations();
+            fragmentTransaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out,
+                    android.R.animator.fade_in, android.R.animator.fade_out);
             fragmentTransaction.replace(R.id.content_frame, fragment);
             fragmentTransaction.commit();
 
@@ -212,6 +225,9 @@ public class MainActivity extends Activity implements
 
             fragment.setArguments(args);
 
+            fragmentTransaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out,
+                android.R.animator.fade_in, android.R.animator.fade_out);
+
             fragmentTransaction.replace(R.id.content_frame, fragment);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
@@ -223,7 +239,7 @@ public class MainActivity extends Activity implements
             Intent intent = new Intent(this, PlaylistUpdaterIntentService.class);
             intent.putExtra(PlaylistUpdaterIntentService.PLAYLIST_ID, playlistId);
             startService(intent);
-            setProgressBarIndeterminateVisibility(true);
+//            setProgressBarIndeterminateVisibility(true);
         }
 
         cursor.close();
@@ -242,6 +258,8 @@ public class MainActivity extends Activity implements
 
         drawerToggle.setDrawerIndicatorEnabled(false);
 
+        fragmentTransaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out,
+            android.R.animator.fade_in, android.R.animator.fade_out);
         fragment.setArguments(args);
         fragmentTransaction.replace(R.id.content_frame, fragment);
         fragmentTransaction.addToBackStack(null);
@@ -250,19 +268,33 @@ public class MainActivity extends Activity implements
     }
 
     @Override
-    public void onWatchVideoClicked(String videoId) {
-        VideoPlayerFragment videoPlayerFragment = new VideoPlayerFragment();
+    public void onWatchVideoClicked(String videoId, long videoIndex) {
 
-        Bundle args = new Bundle();
-        args.putString(VideoPlayerFragment.VIDEO_ID, videoId);
-        videoPlayerFragment.setArguments(args);
+        String[] projection = {AppDatabase.COL_DURATION, AppDatabase.COL_PLAY_TIME};
 
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.replace(R.id.content_frame, videoPlayerFragment);
-        fragmentTransaction.commit();
+        Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_VIDEOS, String.valueOf(videoIndex));
+        Cursor cursor = getContentResolver().query(content_uri, projection, null, null, null);
 
+        if (cursor.moveToFirst()) {
+            int startTime = cursor.getInt(cursor.getColumnIndex(AppDatabase.COL_PLAY_TIME));
+
+            VideoPlayerFragment videoPlayerFragment = new VideoPlayerFragment();
+
+            Bundle args = new Bundle();
+            args.putString(VideoPlayerFragment.VIDEO_ID, videoId);
+            args.putLong(VideoPlayerFragment.VIDEO_INDEX, videoIndex);
+            args.putInt(VideoPlayerFragment.START_TIME, startTime);
+
+            videoPlayerFragment.setArguments(args);
+
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out,
+                    android.R.animator.fade_in, android.R.animator.fade_out);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.replace(R.id.content_frame, videoPlayerFragment);
+            fragmentTransaction.commit();
+        }
     }
 
     @Override
@@ -274,11 +306,29 @@ public class MainActivity extends Activity implements
 
         if (bookmarked) {
             contentValues.put(AppDatabase.COL_BOOKMARKED, "1");
+            Toast.makeText(this, "Bookmark created", Toast.LENGTH_LONG).show();
         } else {
             contentValues.put(AppDatabase.COL_BOOKMARKED, "0");
+            Toast.makeText(this, "Bookmark removed", Toast.LENGTH_LONG).show();
         }
-        Log.d(DEBUG_TAG, "Bookmarked Video _ID " + videoIndex);
         getContentResolver().update(content_uri, contentValues, null, null);
+    }
+
+    @Override
+    public void onVideoDetails(long videoIndex, int playTime, int duration) {
+        Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_VIDEOS, String.valueOf(videoIndex));
+
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(AppDatabase.COL_DURATION, duration);
+        contentValues.put(AppDatabase.COL_PLAY_TIME, playTime);
+
+        getContentResolver().update(content_uri, contentValues, null, null);
+    }
+
+    @Override
+    public void onArticleClicked(long id) {
+
     }
 
 
@@ -394,7 +444,7 @@ public class MainActivity extends Activity implements
                     Toast.makeText(getApplicationContext(), "Playlists update failed", Toast.LENGTH_LONG).show();
                 }
 
-                setProgressBarIndeterminateVisibility(false);
+//                setProgressBarIndeterminateVisibility(false);
             }
         }
     };

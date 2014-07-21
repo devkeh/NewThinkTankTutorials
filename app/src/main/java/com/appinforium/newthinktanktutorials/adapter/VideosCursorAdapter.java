@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.appinforium.newthinktanktutorials.R;
@@ -50,6 +52,9 @@ public class VideosCursorAdapter extends CursorAdapter {
 
         holder.thumbnailImageView = (ImageView) itemLayout.findViewById(R.id.gridItemVideoThumbnailImageView);
         holder.thumbnailLoadingBitmap = bitmap;
+        holder.progressBar = (ProgressBar) itemLayout.findViewById(R.id.gridItemVideoProgressBar);
+
+        holder.progressBar.getProgressDrawable().setColorFilter(Color.parseColor("#b02224"), PorterDuff.Mode.MULTIPLY);
 
         holder.titleTextView = (TextView) itemLayout.findViewById(R.id.gridItemVideoTitleTextView);
 
@@ -64,6 +69,16 @@ public class VideosCursorAdapter extends CursorAdapter {
 
         holder.titleTextView.setText(cursor.getString(cursor.getColumnIndex(AppDatabase.COL_TITLE)));
 
+        int playTime = cursor.getInt(cursor.getColumnIndex(AppDatabase.COL_PLAY_TIME));
+
+        if (playTime > 0) {
+            holder.progressBar.setVisibility(View.VISIBLE);
+            holder.progressBar.setMax(cursor.getInt(cursor.getColumnIndex(AppDatabase.COL_DURATION)));
+            holder.progressBar.setProgress(playTime);
+        } else {
+            holder.progressBar.setVisibility(View.GONE);
+        }
+
         Picasso.with(context)
                 .load(cursor.getString(cursor.getColumnIndex(AppDatabase.COL_THUMBNAIL_URL)))
                 .placeholder(new BitmapDrawable(holder.thumbnailLoadingBitmap))
@@ -75,5 +90,6 @@ public class VideosCursorAdapter extends CursorAdapter {
         ImageView thumbnailImageView;
         TextView titleTextView;
         Bitmap thumbnailLoadingBitmap;
+        ProgressBar progressBar;
     }
 }

@@ -21,25 +21,16 @@ public class AppDataContentProvider extends ContentProvider {
 
     public static final Uri CONTENT_URI_PLAYLISTS = Uri.parse("content://" + AUTHORITY + "/playlists");
     public static final Uri CONTENT_URI_VIDEOS = Uri.parse("content://" + AUTHORITY + "/videos");
+    public static final Uri CONTENT_URI_ARTICLES = Uri.parse("content://" + AUTHORITY + "/articles");
 
     private static final int PLAYLISTS = 100;
     private static final int PLAYLIST_ID = 101;
+    private static final int ARTICLES = 102;
+    private static final int ARTICLE_ID = 103;
     private static final int VIDEOS = 104;
     private static final int VIDEO_ID = 105;
 
     private AppDatabase appDatabase;
-
-    /**
-     *  Get list of playlists
-     *  Get list of videos for a playlist
-     *  Get list of 10 newest video uploads
-     *  Get list of 10 most recently viewed videos
-     *  Insert playlist
-     *  Insert video
-     *  Update playlist details
-     *  Update video details
-     *
-     */
 
     private static final UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
     static {
@@ -54,6 +45,12 @@ public class AppDataContentProvider extends ContentProvider {
 
         // content://<AUTHORITY>/videos/#
         uriMatcher.addURI(AUTHORITY, "videos/#", VIDEO_ID);
+
+        // content://<AUTHORITY>/articles
+        uriMatcher.addURI(AUTHORITY, "articles", ARTICLES);
+
+        // content://<AUTHORITY>/articles/#
+        uriMatcher.addURI(AUTHORITY, "articles/#", ARTICLE_ID);
     }
 
     @Override
@@ -85,6 +82,13 @@ public class AppDataContentProvider extends ContentProvider {
                 break;
             case VIDEO_ID:
                 queryBuilder.setTables(AppDatabase.TABLE_VIDEOS);
+                selection = selection + " _ID = " + uri.getLastPathSegment();
+                break;
+            case ARTICLES:
+                queryBuilder.setTables(AppDatabase.TABLE_ARTICLES);
+                break;
+            case ARTICLE_ID:
+                queryBuilder.setTables(AppDatabase.TABLE_ARTICLES);
                 selection = selection + " _ID = " + uri.getLastPathSegment();
                 break;
             default:
@@ -142,6 +146,22 @@ public class AppDataContentProvider extends ContentProvider {
                     e.printStackTrace();;
                 }
                 break;
+            case ARTICLES:
+                try {
+                    long newID = db.insertOrThrow(AppDatabase.TABLE_ARTICLES, null, contentValues);
+                    if (newID > 0) {
+                        Uri newUri = ContentUris.withAppendedId(uri, newID);
+                        getContext().getContentResolver().notifyChange(newUri, null);
+                        return newUri;
+                    } else {
+                        throw new SQLException("Failed to insert row into " + uri);
+                    }
+                } catch (SQLiteConstraintException e) {
+                    Log.d(DEBUG_TAG, "Ignoring constraint failure for articles");
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                break;
             default:
                 throw new IllegalArgumentException("Invalid URI for insert");
         }
@@ -171,6 +191,12 @@ public class AppDataContentProvider extends ContentProvider {
                 break;
             case VIDEO_ID:
                 count = builder.table(AppDatabase.TABLE_VIDEOS)
+                        .where(AppDatabase.COL_ID + "=?", uri.getLastPathSegment())
+                        .where(selection, selectionArgs)
+                        .update(db, contentValues);
+                break;
+            case ARTICLE_ID:
+                count = builder.table(AppDatabase.TABLE_ARTICLES)
                         .where(AppDatabase.COL_ID + "=?", uri.getLastPathSegment())
                         .where(selection, selectionArgs)
                         .update(db, contentValues);

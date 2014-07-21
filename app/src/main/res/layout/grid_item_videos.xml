@@ -16,7 +16,7 @@
         android:src="@drawable/no_thumbnail"
         android:id="@+id/gridItemVideoThumbnailImageView" />
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -24,15 +24,25 @@
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:padding="5dp"
             android:textStyle="bold"
             android:id="@+id/gridItemVideoTitleTextView"
             android:ellipsize="end"
             android:maxLines="3"
+            android:layout_alignParentTop="true"
             android:text="Playlist Title Will Go Here"/>
 
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:id="@+id/gridItemVideoProgressBar"
+            android:paddingBottom="5dp"
+            android:paddingRight="5dp"
+            android:layout_alignParentBottom="true"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            />
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </LinearLayout>

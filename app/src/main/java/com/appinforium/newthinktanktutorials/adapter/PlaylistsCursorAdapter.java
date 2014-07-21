@@ -35,7 +35,7 @@ public class PlaylistsCursorAdapter extends CursorAdapter {
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
-        View itemLayout = inflater.inflate(R.layout.grid_item_playlists, null);
+        View itemLayout = inflater.inflate(R.layout.grid_item_playlists2, null);
 
         ViewHolder holder = new ViewHolder();
 

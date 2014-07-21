@@ -25,6 +25,7 @@
 
         <service android:name=".service.PlaylistsUpdaterIntentService" />
         <service android:name=".service.PlaylistUpdaterIntentService" />
+        <service android:name=".service.ArticlesUpdaterIntentService" />
     </application>
 
 

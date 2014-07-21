@@ -66,7 +66,7 @@ public class VideosGridFragment extends Fragment implements AdapterView.OnItemCl
         super.onActivityCreated(savedInstanceState);
 
         String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_THUMBNAIL_URL,
-                AppDatabase.COL_TITLE};
+                AppDatabase.COL_TITLE, AppDatabase.COL_DURATION, AppDatabase.COL_PLAY_TIME};
 
         Cursor cursor = getActivity().getContentResolver().query(AppDataContentProvider.CONTENT_URI_VIDEOS,
                 projection, selection, selectionArgs, sortOrder);

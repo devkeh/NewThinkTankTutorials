@@ -5,25 +5,23 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <GridView
-        tools:listitem="@layout/grid_item_videos"
+    <ListView
+        tools:listitem="@layout/list_item_articles"
         android:layout_height="0dp"
         android:layout_width="match_parent"
         android:layout_weight="1"
-        android:numColumns="auto_fit"
-        android:gravity="center"
-        android:columnWidth="@dimen/grid_column_width"
         android:background="#e5e5e5"
         android:verticalSpacing="0dp"
         android:horizontalSpacing="0dp"
+        android:dividerHeight="0dp"
         android:padding="5dp"
-        android:id="@+id/videosGridView">
-    </GridView>
+        android:id="@+id/articlesListView">
+    </ListView>
 
     <TextView
         android:id="@+id/empty"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:text="@string/loading"
         android:gravity="center_vertical|center_horizontal"
         android:textColor="#000000" />

@@ -10,10 +10,10 @@
 
     <!-- Nav Drawer Menu Items -->
     <string-array name="nav_drawer_items">
-        <item >Topics</item>
-        <item >Most Recent</item>
-        <item >Bookmarks</item>
-        <item >History</item>
+        <item >Video Topics</item>
+        <item >Recent Videos</item>
+        <item >Video Bookmarks</item>
+        <item >Articles</item>
         <item >About</item>
     </string-array>
 

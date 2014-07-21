@@ -15,9 +15,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.appinforium.newthinktanktutorials.data.AppDataContentProvider;
 import com.appinforium.newthinktanktutorials.data.AppDatabase;
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerFragment;
 import com.squareup.picasso.Picasso;
 
 public class VideoDetailFragment extends Fragment {
@@ -40,6 +44,7 @@ public class VideoDetailFragment extends Fragment {
         videoTitleTextView = (TextView) view.findViewById(R.id.videoTitleTextView);
         videoDescriptionTextView = (TextView) view.findViewById(R.id.videoDescriptionTextView);
         videoThumbnailImageView = (ImageView) view.findViewById(R.id.videoDetailThumbnailImageView);
+
 
         Bundle args = getArguments();
         videoIndex = args.getLong(VIDEO_INDEX);
@@ -75,6 +80,7 @@ public class VideoDetailFragment extends Fragment {
                 isBookmarked = true;
             }
         }
+
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
     }
 
@@ -93,7 +99,7 @@ public class VideoDetailFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.action_play_video) {
             OnWatchVideoClickedListener listener = (OnWatchVideoClickedListener) getActivity();
-            listener.onWatchVideoClicked(videoId);
+            listener.onWatchVideoClicked(videoId, videoIndex);
             return true;
         }
         if (id == R.id.action_bookmark_video) {
@@ -110,9 +116,29 @@ public class VideoDetailFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+//    @Override
+//    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean wasRestored) {
+//
+//
+//        if (!wasRestored && videoId != null) {
+//            youTubePlayer.cueVideo(videoId, 15000);
+//        }
+//    }
+//
+//    @Override
+//    public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult errorReason) {
+//
+//        if (errorReason.isUserRecoverableError()) {
+//            errorReason.getErrorDialog(getActivity(), 1).show();
+//        } else {
+////            String errorMessage = String.format(getString(R.string.error_player), errorReason.toString());
+//            Toast.makeText(getActivity(), errorReason.toString(), Toast.LENGTH_LONG).show();
+//        }
+//    }
+
 
     public interface OnWatchVideoClickedListener {
-        public void onWatchVideoClicked(String videoId);
+        public void onWatchVideoClicked(String videoId, long videoIndex);
     }
 
     public interface OnBookmarkVideoClickedListener {

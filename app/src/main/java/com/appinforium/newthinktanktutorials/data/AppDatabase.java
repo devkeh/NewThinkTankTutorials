@@ -15,6 +15,7 @@ public class AppDatabase extends SQLiteOpenHelper {
     // Tables
     public static final String TABLE_PLAYLISTS = "playlists";
     public static final String TABLE_VIDEOS = "videos";
+    public static final String TABLE_ARTICLES = "articles";
 
     // Columns
     public static final String COL_ID = "_id";
@@ -27,6 +28,9 @@ public class AppDatabase extends SQLiteOpenHelper {
     public static final String COL_POSITION = "position";
     public static final String COL_ITEM_COUNT = "item_count";
     public static final String COL_BOOKMARKED = "bookmarked";
+    public static final String COL_PLAY_TIME = "play_time";
+    public static final String COL_DURATION = "duration";
+    public static final String COL_ARTICLE_URL = "article_url";
 
     // Table constructor SQL Statements
     private static final String CREATE_TABLE_PLAYLISTS = "CREATE TABLE " + TABLE_PLAYLISTS
@@ -47,7 +51,16 @@ public class AppDatabase extends SQLiteOpenHelper {
             + COL_THUMBNAIL_URL + " text not null, "
             + COL_PUBLISHED_AT + " datetime not null, "
             + COL_BOOKMARKED + " int not null default 0, "
+            + COL_PLAY_TIME + " int not null default 0, "
+            + COL_DURATION + " int not null default 0, "
             + COL_POSITION + " integer not null);";
+
+    private static final String CREATE_TABLE_ARTICLES = "CREATE TABLE " + TABLE_ARTICLES
+            + " (" + COL_ID + " integer primary key autoincrement, "
+            + COL_TITLE + " text not null, "
+            + COL_DESCRIPTION + " text not null, "
+            + COL_ARTICLE_URL + " text UNIQUE not null, "
+            + COL_PUBLISHED_AT + " datetime not null);";
 
     public AppDatabase(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -61,6 +74,8 @@ public class AppDatabase extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_PLAYLISTS);
         Log.d(DEBUG_TAG, "Creating videos table");
         db.execSQL(CREATE_TABLE_VIDEOS);
+        Log.d(DEBUG_TAG, "Creating articles table");
+        db.execSQL(CREATE_TABLE_ARTICLES);
     }
 
     // Called when DB_VERSION is incremented
@@ -73,6 +88,8 @@ public class AppDatabase extends SQLiteOpenHelper {
         Log.d(DEBUG_TAG, "Dropped playlists table");
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_VIDEOS);
         Log.d(DEBUG_TAG, "Dropped videos table");
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ARTICLES);
+        Log.d(DEBUG_TAG, "Dropped articles table");
         onCreate(db);
     }
 }
