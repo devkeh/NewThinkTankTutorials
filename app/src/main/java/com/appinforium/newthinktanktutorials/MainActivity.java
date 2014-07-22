@@ -69,12 +69,13 @@ public class MainActivity extends Activity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 //        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-
+        setProgressBarIndeterminateVisibility(true);
         String[] navMenuTitles;
+
         ArrayList<NavDrawerItem> navDrawerItems;
         NavDrawerListAdapter navDrawerListAdapter;
 
@@ -329,6 +330,33 @@ public class MainActivity extends Activity implements
     @Override
     public void onArticleClicked(long id) {
 
+        String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_ARTICLE_URL, AppDatabase.COL_TITLE};
+
+        Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_ARTICLES, String.valueOf(id));
+        Cursor cursor = getContentResolver().query(content_uri, projection, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+            WebViewFragment webViewFragment = new WebViewFragment();
+
+            Bundle args = new Bundle();
+            args.putString(WebViewFragment.WEB_URL, cursor.getString(cursor.getColumnIndex(AppDatabase.COL_ARTICLE_URL)));
+
+            webViewFragment.setArguments(args);
+            fragmentTransaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out,
+                    android.R.animator.fade_in, android.R.animator.fade_out);
+            fragmentTransaction.replace(R.id.content_frame, webViewFragment);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
+
+            setTitle(cursor.getString(cursor.getColumnIndex(AppDatabase.COL_TITLE)));
+            drawerToggle.setDrawerIndicatorEnabled(false);
+
+        }
+
+        cursor.close();
     }
 
 
@@ -393,12 +421,7 @@ public class MainActivity extends Activity implements
             return true;
         }
         if (id == android.R.id.home) {
-            FragmentManager fragmentManager = getFragmentManager();
-            fragmentManager.popBackStack();
-            fragmentManager.executePendingTransactions();
-            if (fragmentManager.getBackStackEntryCount() < 1){
-                drawerToggle.setDrawerIndicatorEnabled(true);
-            }
+            onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -428,6 +451,18 @@ public class MainActivity extends Activity implements
         // Pass any configuration change to the drawer toggls
         drawerToggle.onConfigurationChanged(newConfig);
 
+
+    }
+
+    @Override
+    public void onBackPressed() {
+//        super.onBackPressed();
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.popBackStack();
+        fragmentManager.executePendingTransactions();
+        if (fragmentManager.getBackStackEntryCount() < 1){
+            drawerToggle.setDrawerIndicatorEnabled(true);
+        }
 
     }
 

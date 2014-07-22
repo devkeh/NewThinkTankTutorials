@@ -48,6 +48,8 @@ public class ArticlesListFragment extends Fragment implements AdapterView.OnItem
 
         listView.setOnItemClickListener(this);
         listView.setAdapter(adapter);
+
+        getActivity().setTitle("Articles");
     }
 
     @Override

@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:layout_width="match_parent"
     android:numColumns="@integer/grid_num_columns"
-
     android:background="#e5e5e5"
     android:verticalSpacing="0dp"
     android:horizontalSpacing="0dp"

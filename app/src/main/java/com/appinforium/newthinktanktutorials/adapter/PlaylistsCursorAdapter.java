@@ -25,17 +25,20 @@ public class PlaylistsCursorAdapter extends CursorAdapter {
     LayoutInflater inflater;
     String[] loadingColors;
     int max;
+    private int lastPosition = -1;
+    private Context mContext;
 
     public PlaylistsCursorAdapter(Context context, Cursor c, boolean autoRequery) {
         super(context, c, autoRequery);
         inflater = LayoutInflater.from(context);
         loadingColors = context.getResources().getStringArray(R.array.thumbnail_loading_colors);
         max = loadingColors.length - 1;
+        this.mContext = context;
     }
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
-        View itemLayout = inflater.inflate(R.layout.grid_item_playlists2, null);
+        View itemLayout = inflater.inflate(R.layout.grid_item_playlists, null);
 
         ViewHolder holder = new ViewHolder();
 
@@ -55,6 +58,10 @@ public class PlaylistsCursorAdapter extends CursorAdapter {
         holder.titleTextView = (TextView) itemLayout.findViewById(R.id.gridItemPlaylistsTitleTextView);
         holder.itemCountTextView = (TextView) itemLayout.findViewById(R.id.gridItemPlaylistsItemCountTextView);
 
+//        Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.up_from_bottom);
+//        itemLayout.startAnimation(animation);
+//        lastPosition = position;
+
         itemLayout.setTag(holder);
         return itemLayout;
     }
@@ -64,6 +71,12 @@ public class PlaylistsCursorAdapter extends CursorAdapter {
 
         ViewHolder holder = (ViewHolder) view.getTag();
 
+//        int position = cursor.getPosition();
+//        if (position > lastPosition) {
+//            Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.up_from_bottom);
+//            view.startAnimation(animation);
+//            lastPosition = position;
+//        }
         holder.titleTextView.setText(cursor.getString(cursor.getColumnIndex(AppDatabase.COL_TITLE)));
 
         String videoCount = cursor.getString(cursor.getColumnIndex(AppDatabase.COL_ITEM_COUNT)) + " Videos";

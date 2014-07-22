@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:background="@drawable/container_dropshadow"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -27,17 +27,26 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:textStyle="bold"
+            android:textSize="18sp"
             android:ellipsize="end"
-            android:maxLines="2"
+            android:maxLines="1"
             android:id="@+id/gridItemPlaylistsTitleTextView"
             android:text="Playlist Title Will Go Here"/>
 
-        <TextView
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="5dp"
-            android:id="@+id/gridItemPlaylistsItemCountTextView"
-            android:text="0 Videos"/>
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="5dp"
+                android:paddingBottom="5dp"
+                android:layout_alignParentRight="true"
+                android:id="@+id/gridItemPlaylistsItemCountTextView"
+                android:text="0 Videos"/>
+
+        </RelativeLayout>
 
     </LinearLayout>
 

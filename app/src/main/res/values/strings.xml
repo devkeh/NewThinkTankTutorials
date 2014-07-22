@@ -10,19 +10,19 @@
 
     <!-- Nav Drawer Menu Items -->
     <string-array name="nav_drawer_items">
-        <item >Video Topics</item>
-        <item >Recent Videos</item>
-        <item >Video Bookmarks</item>
+        <item >Tutorial Playlists</item>
+        <item >Recent Uploads</item>
+        <item >Bookmarks</item>
         <item >Articles</item>
         <item >About</item>
     </string-array>
 
     <array name="nav_drawer_icons">
-        <item>@drawable/ic_action_topics</item>
-        <item>@drawable/ic_action_recent</item>
-        <item>@drawable/ic_action_bookmark</item>
-        <item>@drawable/ic_action_history</item>
-        <item>@drawable/ic_action_about</item>
+        <item>@drawable/ic_menu_playlists</item>
+        <item>@drawable/ic_menu_recent_uploads</item>
+        <item>@drawable/ic_menu_bookmarks</item>
+        <item>@drawable/ic_menu_articles</item>
+        <item>@drawable/ic_menu_about</item>
     </array>
 
 </resources>

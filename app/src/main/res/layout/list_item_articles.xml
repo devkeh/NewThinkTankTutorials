@@ -22,10 +22,20 @@
         android:id="@+id/listItemArticleDescriptionTextView"
         android:text="Description will go here" />
 
-    <TextView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="5dp"
-        android:id="@+id/listItemArticlePublishedDateTextView"
-        android:text="Posted on Sat, December 23 2013"/>
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:padding="5dp"
+            android:textStyle="bold"
+            android:textSize="11sp"
+            android:id="@+id/listItemArticlePublishedDateTextView"
+            android:text="Posted on Sat, December 23 2013"/>
+
+    </RelativeLayout>
+
 </LinearLayout>

@@ -11,6 +11,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -23,15 +25,18 @@ import com.squareup.picasso.Picasso;
 import java.util.Random;
 
 public class VideosCursorAdapter extends CursorAdapter {
-    LayoutInflater inflater;
-    String[] loadingColors;
-    int max;
+    private LayoutInflater inflater;
+    private Context mContext;
+    private String[] loadingColors;
+    private int max;
+    private int lastPosition = -1;
 
     public VideosCursorAdapter(Context context, Cursor c, boolean autoRequery) {
         super(context, c, autoRequery);
         inflater = LayoutInflater.from(context);
         loadingColors = context.getResources().getStringArray(R.array.thumbnail_loading_colors);
         max = loadingColors.length - 1;
+        this.mContext = context;
     }
 
     @Override

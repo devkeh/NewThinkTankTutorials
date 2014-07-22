@@ -136,9 +136,10 @@ public class VideoPlayerFragment extends YouTubePlayerFragment implements
 
         @Override
         public void onVideoEnded() {
-            FragmentManager fragmentManager = getFragmentManager();
-            fragmentManager.popBackStack();
-            fragmentManager.executePendingTransactions();
+//            FragmentManager fragmentManager = getFragmentManager();
+//            fragmentManager.popBackStack();
+//            fragmentManager.executePendingTransactions();
+            getActivity().onBackPressed();
         }
 
         @Override
