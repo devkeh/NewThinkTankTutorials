@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,7 +23,7 @@ public class VideosGridFragment extends Fragment implements AdapterView.OnItemCl
 
     private static final String DEBUG_TAG = "VideosGridFragment";
     public static final String NAME = DEBUG_TAG;
-    public static final String PLAYLIST_ID = "PLAYLIST_ID_ARG";
+    public static final String ID_PLAYLIST = "ID_PLAYLIST_ARG";
     public static final String SELECTION = "SELECTION_ARG";
     public static final String SELECTION_ARGS = "SELECTION_ARGS_ARG";
     public static final String SORT_ORDER = "SORT_ORDER_ARG";
@@ -31,6 +32,7 @@ public class VideosGridFragment extends Fragment implements AdapterView.OnItemCl
     private String selection;
     private String[] selectionArgs;
     private String sortOrder;
+    private String idPlaylist;
 
     private GridView videosGridView;
 
@@ -52,6 +54,7 @@ public class VideosGridFragment extends Fragment implements AdapterView.OnItemCl
         selection = args.getString(SELECTION);
         selectionArgs = args.getStringArray(SELECTION_ARGS);
         sortOrder = args.getString(SORT_ORDER);
+        idPlaylist = args.getString(ID_PLAYLIST);
         String emptyMsg = args.getString(EMPTY_MSG);
 
         if (emptyMsg != null) {
@@ -65,14 +68,20 @@ public class VideosGridFragment extends Fragment implements AdapterView.OnItemCl
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_THUMBNAIL_URL,
-                AppDatabase.COL_TITLE, AppDatabase.COL_DURATION, AppDatabase.COL_PLAY_TIME};
+        Log.d(DEBUG_TAG, "idPlaylist: " + idPlaylist);
+        if (idPlaylist != null) {
+            String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_THUMBNAIL_URL,
+                    AppDatabase.COL_TITLE, AppDatabase.COL_DURATION, AppDatabase.COL_PLAY_TIME};
 
-        Cursor cursor = getActivity().getContentResolver().query(AppDataContentProvider.CONTENT_URI_VIDEOS,
-                projection, selection, selectionArgs, sortOrder);
+//        Cursor cursor = getActivity().getContentResolver().query(AppDataContentProvider.CONTENT_URI_VIDEOS,
+//                projection, selection, selectionArgs, sortOrder);
 
-        VideosCursorAdapter adapter = new VideosCursorAdapter(getActivity(), cursor, true);
-        videosGridView.setAdapter(adapter);
+            String sortOrder = "published_at ASC";
+            Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_PLAYLIST_VIDEOS, idPlaylist);
+            Cursor cursor = getActivity().getContentResolver().query(content_uri, projection, null, null, sortOrder);
+            VideosCursorAdapter adapter = new VideosCursorAdapter(getActivity(), cursor, true);
+            videosGridView.setAdapter(adapter);
+        }
     }
 
     @Override

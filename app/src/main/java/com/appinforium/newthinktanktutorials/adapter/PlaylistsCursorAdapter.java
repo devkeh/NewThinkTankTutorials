@@ -79,8 +79,11 @@ public class PlaylistsCursorAdapter extends CursorAdapter {
 //        }
         holder.titleTextView.setText(cursor.getString(cursor.getColumnIndex(AppDatabase.COL_TITLE)));
 
-        String videoCount = cursor.getString(cursor.getColumnIndex(AppDatabase.COL_ITEM_COUNT)) + " Videos";
-        holder.itemCountTextView.setText(videoCount);
+        int videoCount = cursor.getInt(cursor.getColumnIndex(AppDatabase.COL_ITEM_COUNT)) -
+                cursor.getInt(cursor.getColumnIndex(AppDatabase.COL_ITEM_COUNT_OFFSET));
+
+//        String videoCount = cursor.getString(cursor.getColumnIndex(AppDatabase.COL_ITEM_COUNT)) + " Videos";
+        holder.itemCountTextView.setText(String.valueOf(videoCount) + " Videos");
 
         Picasso.with(context)
                 .load(cursor.getString(cursor.getColumnIndex(AppDatabase.COL_THUMBNAIL_URL)))

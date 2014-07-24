@@ -17,11 +17,12 @@ import java.sql.SQLException;
 public class AppDataContentProvider extends ContentProvider {
 
     private static final String DEBUG_TAG = "AppDataContentProvider";
-    private static final String AUTHORITY = "com.appinforium.newthinktanktutorials.data.AppDataContentProvider";
+    public static final String AUTHORITY = "com.appinforium.newthinktanktutorials.data.AppDataContentProvider";
 
     public static final Uri CONTENT_URI_PLAYLISTS = Uri.parse("content://" + AUTHORITY + "/playlists");
     public static final Uri CONTENT_URI_VIDEOS = Uri.parse("content://" + AUTHORITY + "/videos");
     public static final Uri CONTENT_URI_ARTICLES = Uri.parse("content://" + AUTHORITY + "/articles");
+    public static final Uri CONTENT_URI_PLAYLIST_VIDEOS = Uri.parse("content://" + AUTHORITY + "/playlist_videos");
 
     private static final int PLAYLISTS = 100;
     private static final int PLAYLIST_ID = 101;
@@ -29,6 +30,8 @@ public class AppDataContentProvider extends ContentProvider {
     private static final int ARTICLE_ID = 103;
     private static final int VIDEOS = 104;
     private static final int VIDEO_ID = 105;
+    private static final int PLAYLIST_VIDEOS = 106;
+    private static final int PLAYLIST_ID_VIDEOS = 107;
 
     private AppDatabase appDatabase;
 
@@ -51,6 +54,12 @@ public class AppDataContentProvider extends ContentProvider {
 
         // content://<AUTHORITY>/articles/#
         uriMatcher.addURI(AUTHORITY, "articles/#", ARTICLE_ID);
+
+        // content://<AUTHORITY>/playlist_videos"
+        uriMatcher.addURI(AUTHORITY, "playlist_videos", PLAYLIST_VIDEOS);
+
+        // content://<AUTHORITY>/playlist_videos/#
+        uriMatcher.addURI(AUTHORITY, "playlist_videos/#", PLAYLIST_ID_VIDEOS);
     }
 
     @Override
@@ -90,6 +99,31 @@ public class AppDataContentProvider extends ContentProvider {
             case ARTICLE_ID:
                 queryBuilder.setTables(AppDatabase.TABLE_ARTICLES);
                 selection = selection + " _ID = " + uri.getLastPathSegment();
+                break;
+            case PLAYLIST_VIDEOS:
+                queryBuilder.setTables(AppDatabase.TABLE_ROUTING_PLAYLIST_VIDEO);
+                break;
+            case PLAYLIST_ID_VIDEOS:
+                queryBuilder.setTables(AppDatabase.TABLE_VIDEOS);
+                selection = "EXISTS (SELECT * FROM " + AppDatabase.TABLE_ROUTING_PLAYLIST_VIDEO
+                        + " WHERE " + AppDatabase.TABLE_ROUTING_PLAYLIST_VIDEO + "." +  AppDatabase.COL_ID_VIDEOS
+                        + " = " + AppDatabase.TABLE_VIDEOS + "." +  AppDatabase.COL_ID
+                        + " AND " + AppDatabase.TABLE_ROUTING_PLAYLIST_VIDEO + "." + AppDatabase.COL_ID_PLAYLISTS
+                        + " = " + uri.getLastPathSegment() + ")";
+
+// SELECT _id, playlist_id FROM videos WHERE (playlist_id = ?  WHERE EXISTS (SELECT * FROM routing_playlist_video WHERE routing_playlist_video.id_videos = videos._id AND routing_playlist_video.id_playlists = 1)))
+
+//                SELECT name
+//                FROM Places
+//                WHERE EXISTS(
+//                    SELECT *
+//                            FROM RoutingTable_PlacesTags
+//                WHERE RoutingTable_PlacesTags.places_id = Places._id
+//                AND EXISTS (
+//                    SELECT *
+//                            FROM Tags
+//                WHERE Tags._id = RoutingTable_PlacesTags.tag_id AND Tags.name = 'Searched for tag name here'
+//                ))
                 break;
             default:
                 throw new IllegalArgumentException("Unknown content Uri");
@@ -158,6 +192,22 @@ public class AppDataContentProvider extends ContentProvider {
                     }
                 } catch (SQLiteConstraintException e) {
                     Log.d(DEBUG_TAG, "Ignoring constraint failure for articles");
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case PLAYLIST_VIDEOS:
+                try {
+                    long newID = db.insertOrThrow(AppDatabase.TABLE_ROUTING_PLAYLIST_VIDEO, null, contentValues);
+                    if (newID > 0) {
+                        Uri newUri = ContentUris.withAppendedId(uri, newID);
+                        getContext().getContentResolver().notifyChange(newUri, null);
+                        return newUri;
+                    } else {
+                        throw new SQLException("Failed to insert row into " + uri);
+                    }
+                } catch (SQLiteConstraintException e) {
+                    Log.d(DEBUG_TAG, "Ignoring constraint failure for jointable");
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }

@@ -3,6 +3,9 @@
     package="com.appinforium.newthinktanktutorials" >
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
 
     <application
         android:allowBackup="true"
@@ -21,11 +24,34 @@
 
         <provider
             android:authorities="com.appinforium.newthinktanktutorials.data.AppDataContentProvider"
+            android:exported="false"
+            android:syncable="true"
             android:name="com.appinforium.newthinktanktutorials.data.AppDataContentProvider" />
 
         <service android:name=".service.PlaylistsUpdaterIntentService" />
         <service android:name=".service.PlaylistUpdaterIntentService" />
         <service android:name=".service.ArticlesUpdaterIntentService" />
+
+        <service android:name=".service.StubAuthenticatorService">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/stubauthenticator" />
+        </service>
+
+        <service
+            android:name=".service.NewThinkTankSyncService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
+        </service>
+
     </application>
 
 

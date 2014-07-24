@@ -40,7 +40,7 @@ public class ArticlesListFragment extends Fragment implements AdapterView.OnItem
             AppDatabase.COL_TITLE, AppDatabase.COL_PUBLISHED_AT};
 
         Cursor cursor = getActivity().getContentResolver().query(AppDataContentProvider.CONTENT_URI_ARTICLES,
-                projection, null, null, null);
+                projection, null, null, "date(" + AppDatabase.COL_PUBLISHED_AT + ") ASC");
 
         ArticlesCursorAdapter adapter = new ArticlesCursorAdapter(getActivity(), cursor, true);
 

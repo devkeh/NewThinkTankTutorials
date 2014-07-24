@@ -16,6 +16,7 @@ public class AppDatabase extends SQLiteOpenHelper {
     public static final String TABLE_PLAYLISTS = "playlists";
     public static final String TABLE_VIDEOS = "videos";
     public static final String TABLE_ARTICLES = "articles";
+    public static final String TABLE_ROUTING_PLAYLIST_VIDEO = "routing_playlist_video";
 
     // Columns
     public static final String COL_ID = "_id";
@@ -27,10 +28,13 @@ public class AppDatabase extends SQLiteOpenHelper {
     public static final String COL_THUMBNAIL_URL = "thumbnail_url";
     public static final String COL_POSITION = "position";
     public static final String COL_ITEM_COUNT = "item_count";
+    public static final String COL_ITEM_COUNT_OFFSET = "item_count_offset";
     public static final String COL_BOOKMARKED = "bookmarked";
     public static final String COL_PLAY_TIME = "play_time";
     public static final String COL_DURATION = "duration";
     public static final String COL_ARTICLE_URL = "article_url";
+    public static final String COL_ID_VIDEOS = "id_videos" ;
+    public static final String COL_ID_PLAYLISTS = "id_playlists";
 
     // Table constructor SQL Statements
     private static final String CREATE_TABLE_PLAYLISTS = "CREATE TABLE " + TABLE_PLAYLISTS
@@ -40,6 +44,7 @@ public class AppDatabase extends SQLiteOpenHelper {
             + COL_DESCRIPTION + " text, "
             + COL_PUBLISHED_AT + " datetime not null, "
             + COL_ITEM_COUNT + " integer, "
+            + COL_ITEM_COUNT_OFFSET + " integer not null default 0, "
             + COL_THUMBNAIL_URL + " text);";
 
     private static final String CREATE_TABLE_VIDEOS = "CREATE TABLE " + TABLE_VIDEOS
@@ -62,6 +67,15 @@ public class AppDatabase extends SQLiteOpenHelper {
             + COL_ARTICLE_URL + " text UNIQUE not null, "
             + COL_PUBLISHED_AT + " datetime not null);";
 
+    private static final String CREATE_TABLE_ROUTING_PLAYLIST_VIDEO = "CREATE TABLE " + TABLE_ROUTING_PLAYLIST_VIDEO
+            + " (" + COL_ID + " integer primary key autoincrement, "
+            + COL_POSITION + " integer not null, "
+            + COL_ID_VIDEOS + " integer not null, "
+            + COL_ID_PLAYLISTS + " integer not null, "
+            + "FOREIGN KEY(" + COL_ID_VIDEOS + ") REFERENCES " + TABLE_VIDEOS + "(" + COL_ID + "), "
+            + "FOREIGN KEY(" + COL_ID_PLAYLISTS + ") REFERENCES " + TABLE_PLAYLISTS + "(" + COL_ID + "));";
+//            + FOREIGN KEY(places_id) REFERENCES Places(_id)
+
     public AppDatabase(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
@@ -76,6 +90,8 @@ public class AppDatabase extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_VIDEOS);
         Log.d(DEBUG_TAG, "Creating articles table");
         db.execSQL(CREATE_TABLE_ARTICLES);
+        Log.d(DEBUG_TAG, "Creating routing playlists to videos table");
+        db.execSQL(CREATE_TABLE_ROUTING_PLAYLIST_VIDEO);
     }
 
     // Called when DB_VERSION is incremented
@@ -90,6 +106,8 @@ public class AppDatabase extends SQLiteOpenHelper {
         Log.d(DEBUG_TAG, "Dropped videos table");
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ARTICLES);
         Log.d(DEBUG_TAG, "Dropped articles table");
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ROUTING_PLAYLIST_VIDEO);
+        Log.d(DEBUG_TAG, "Dropped routing playlists to videos table");
         onCreate(db);
     }
 }

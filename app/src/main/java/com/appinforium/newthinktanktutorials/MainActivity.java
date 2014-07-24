@@ -1,10 +1,13 @@
 package com.appinforium.newthinktanktutorials;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -48,6 +51,8 @@ public class MainActivity extends Activity implements
 
     private static final String DEBUG_TAG = "MainActivity";
     private static final String TITLE = "TITLE";
+    private static final String ACCOUNT = "dummyaccount";
+    private static final String ACCOUNT_TYPE = "com.appinforium.newthinktanktutorials";
 
     private DrawerLayout drawerLayout;
     private ListView drawerListView;
@@ -123,13 +128,26 @@ public class MainActivity extends Activity implements
 
         if (savedInstanceState == null) {
             displayMenuFragment(TOPICS);
-            Intent intent = new Intent(this, PlaylistsUpdaterIntentService.class);
-            intent.putExtra(PlaylistsUpdaterIntentService.CHANNEL_ID,
-                getResources().getString(R.string.channel_id));
-            startService(intent);
+//            Intent intent = new Intent(this, PlaylistsUpdaterIntentService.class);
+//            intent.putExtra(PlaylistsUpdaterIntentService.CHANNEL_ID,
+//                getResources().getString(R.string.channel_id));
+//            startService(intent);
+            Account account = CreateSyncAccount(this);
+            Bundle settingsBundle = new Bundle();
+            settingsBundle.putBoolean(
+                    ContentResolver.SYNC_EXTRAS_MANUAL, true);
+            settingsBundle.putBoolean(
+                    ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+        /*
+         * Request the sync for the default account, authority, and
+         * manual sync settings
+         */
+            ContentResolver.requestSync(account, AppDataContentProvider.AUTHORITY, settingsBundle);
 
-
-
+//            String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_TITLE};
+//            Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_VIDEOS, "1");
+//            Cursor cursor = getContentResolver().query(content_uri, projection, null, null, null);
+//            Log.d(DEBUG_TAG, "cursor: " + cursor.getCount());
         } else {
 
             FragmentManager fragmentManager = getFragmentManager();
@@ -144,6 +162,8 @@ public class MainActivity extends Activity implements
         }
 
     }
+
+
 
     private void displayMenuFragment(int menuPosition) {
 
@@ -218,11 +238,12 @@ public class MainActivity extends Activity implements
             Fragment fragment = new VideosGridFragment();
             Bundle args = new Bundle();
 
-            String selection = "playlist_id = ?";
-            String[] selectionArgs = { playlistId};
-
-            args.putString(VideosGridFragment.SELECTION, selection);
-            args.putStringArray(VideosGridFragment.SELECTION_ARGS, selectionArgs);
+//            String selection = "playlist_id = ?";
+//            String[] selectionArgs = { playlistId};
+//
+//            args.putString(VideosGridFragment.SELECTION, selection);
+//            args.putStringArray(VideosGridFragment.SELECTION_ARGS, selectionArgs);
+            args.putString(VideosGridFragment.ID_PLAYLIST, cursor.getString(cursor.getColumnIndex(AppDatabase.COL_ID)));
 
             fragment.setArguments(args);
 
@@ -237,9 +258,9 @@ public class MainActivity extends Activity implements
 
             drawerToggle.setDrawerIndicatorEnabled(false);
 
-            Intent intent = new Intent(this, PlaylistUpdaterIntentService.class);
-            intent.putExtra(PlaylistUpdaterIntentService.PLAYLIST_ID, playlistId);
-            startService(intent);
+//            Intent intent = new Intent(this, PlaylistUpdaterIntentService.class);
+//            intent.putExtra(PlaylistUpdaterIntentService.PLAYLIST_ID, playlistId);
+//            startService(intent);
 //            setProgressBarIndeterminateVisibility(true);
         }
 
@@ -483,4 +504,43 @@ public class MainActivity extends Activity implements
             }
         }
     };
+
+    /**
+     * Create a new dummy account for the sync adapter
+     *
+     * @param context The application context
+     */
+    public static Account CreateSyncAccount(Context context) {
+
+        Log.d(DEBUG_TAG, "CreateSyncAccount called");
+        // Create the account type and default account
+        Account newAccount = new Account(
+                ACCOUNT, ACCOUNT_TYPE);
+        // Get an instance of the Android account manager
+        AccountManager accountManager =
+                (AccountManager) context.getSystemService(
+                        ACCOUNT_SERVICE);
+        /*
+         * Add the account and account type, no password or user data
+         * If successful, return the Account object, otherwise report an error.
+         */
+        if (accountManager.addAccountExplicitly(newAccount, null, null)) {
+            /*
+             * If you don't set android:syncable="true" in
+             * in your <provider> element in the manifest,
+             * then call context.setIsSyncable(account, AUTHORITY, 1)
+             * here.
+             */
+            return newAccount;
+        } else {
+            /*
+             * The account exists or some other error occurred. Log this, report it,
+             * or handle it internally.
+             */
+            Log.d(DEBUG_TAG, "something went wrong during CreateSyncAccount");
+        }
+
+        return null;
+    }
+
 }
