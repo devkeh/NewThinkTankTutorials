@@ -54,6 +54,15 @@ public class MainActivity extends Activity implements
     private static final String ACCOUNT = "dummyaccount";
     private static final String ACCOUNT_TYPE = "com.appinforium.newthinktanktutorials";
 
+    // Sync interval constants
+    public static final long MILLISECONDS_PER_SECOND = 1000L;
+    public static final long SECONDS_PER_MINUTE = 60L;
+    public static final long SYNC_INTERVAL_IN_MINUTES = 120L;
+    public static final long SYNC_INTERVAL =
+            SYNC_INTERVAL_IN_MINUTES *
+                    SECONDS_PER_MINUTE *
+                    MILLISECONDS_PER_SECOND;
+
     private DrawerLayout drawerLayout;
     private ListView drawerListView;
 
@@ -142,8 +151,11 @@ public class MainActivity extends Activity implements
          * Request the sync for the default account, authority, and
          * manual sync settings
          */
+
             ContentResolver.requestSync(account, AppDataContentProvider.AUTHORITY, settingsBundle);
 
+            ContentResolver.setSyncAutomatically(account, AppDataContentProvider.AUTHORITY, true);
+            ContentResolver.addPeriodicSync(account, AppDataContentProvider.AUTHORITY, new Bundle(), SYNC_INTERVAL);
 //            String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_TITLE};
 //            Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_VIDEOS, "1");
 //            Cursor cursor = getContentResolver().query(content_uri, projection, null, null, null);
@@ -538,9 +550,9 @@ public class MainActivity extends Activity implements
              * or handle it internally.
              */
             Log.d(DEBUG_TAG, "something went wrong during CreateSyncAccount");
+            return newAccount;
         }
 
-        return null;
     }
 
 }
