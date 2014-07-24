@@ -256,7 +256,7 @@ public class MainActivity extends Activity implements
 //            args.putString(VideosGridFragment.SELECTION, selection);
 //            args.putStringArray(VideosGridFragment.SELECTION_ARGS, selectionArgs);
             args.putString(VideosGridFragment.ID_PLAYLIST, cursor.getString(cursor.getColumnIndex(AppDatabase.COL_ID)));
-
+            args.putString(VideosGridFragment.SORT_ORDER, "published_at ASC");
             fragment.setArguments(args);
 
             fragmentTransaction.setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out,

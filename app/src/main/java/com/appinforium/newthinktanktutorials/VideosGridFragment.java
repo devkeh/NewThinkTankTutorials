@@ -69,19 +69,26 @@ public class VideosGridFragment extends Fragment implements AdapterView.OnItemCl
         super.onActivityCreated(savedInstanceState);
 
         Log.d(DEBUG_TAG, "idPlaylist: " + idPlaylist);
-        if (idPlaylist != null) {
-            String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_THUMBNAIL_URL,
+
+        String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_THUMBNAIL_URL,
                     AppDatabase.COL_TITLE, AppDatabase.COL_DURATION, AppDatabase.COL_PLAY_TIME};
+
+        Cursor cursor;
+        if (idPlaylist != null) {
 
 //        Cursor cursor = getActivity().getContentResolver().query(AppDataContentProvider.CONTENT_URI_VIDEOS,
 //                projection, selection, selectionArgs, sortOrder);
 
-            String sortOrder = "published_at ASC";
             Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_PLAYLIST_VIDEOS, idPlaylist);
-            Cursor cursor = getActivity().getContentResolver().query(content_uri, projection, null, null, sortOrder);
-            VideosCursorAdapter adapter = new VideosCursorAdapter(getActivity(), cursor, true);
-            videosGridView.setAdapter(adapter);
+            cursor = getActivity().getContentResolver().query(content_uri, projection, null, null, sortOrder);
+
+        } else {
+            cursor = getActivity().getContentResolver().query(AppDataContentProvider.CONTENT_URI_VIDEOS,
+                    projection, selection, selectionArgs, sortOrder);
         }
+
+        VideosCursorAdapter adapter = new VideosCursorAdapter(getActivity(), cursor, true);
+        videosGridView.setAdapter(adapter);
     }
 
     @Override
