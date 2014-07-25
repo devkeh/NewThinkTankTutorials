@@ -38,6 +38,11 @@ import java.util.ArrayList;
 public class NewThinkTankSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private static final String DEBUG_TAG = "NewThinkTankSyncAdapter";
+    public static final String BROADCAST_ACTION = "com.appinforium.newthinktanktutorials.syncadapter";
+    public static final String STATUS = "status";
+    public static final int RUNNING = 1;
+    public static final int FINISHED = 0;
+
     private Context context;
     private ContentProviderClient provider;
     private NotificationManager notificationManager;
@@ -50,15 +55,21 @@ public class NewThinkTankSyncAdapter extends AbstractThreadedSyncAdapter {
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
+
+    private void sendStatusBroadcast(int status) {
+        Intent intent = new Intent();
+        intent.setAction(BROADCAST_ACTION);
+        intent.putExtra(STATUS, status);
+        this.context.sendBroadcast(intent);
+    }
+
     @Override
     public void onPerformSync(Account account, Bundle settingsBundle, String authority, ContentProviderClient provider, SyncResult syncResult) {
         Log.d(DEBUG_TAG, "onPerformSync has been called");
         this.provider = provider;
 
 
-
-
-
+        sendStatusBroadcast(RUNNING);
 
 
         ArrayList<Bundle> updatePlaylistVideos = new ArrayList<Bundle>();
@@ -165,7 +176,7 @@ public class NewThinkTankSyncAdapter extends AbstractThreadedSyncAdapter {
             updatePlaylist(bundle.getString("playlistId"), bundle.getString("id_playlist"), bundle.getInt("itemCount"));
         }
 
-
+        sendStatusBroadcast(FINISHED);
 
         // now push a notification if new videos were posted.
         String nTitle;

@@ -2,6 +2,7 @@ package com.appinforium.newthinktanktutorials;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -12,6 +13,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SyncStatusObserver;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.database.Cursor;
@@ -24,14 +26,20 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.appinforium.newthinktanktutorials.adapter.NavDrawerListAdapter;
+import com.appinforium.newthinktanktutorials.adapter.NewThinkTankSyncAdapter;
 import com.appinforium.newthinktanktutorials.data.AppDataContentProvider;
 import com.appinforium.newthinktanktutorials.data.AppDatabase;
+import com.appinforium.newthinktanktutorials.extras.ButteryProgressBar;
 import com.appinforium.newthinktanktutorials.model.NavDrawerItem;
 import com.appinforium.newthinktanktutorials.service.ArticlesUpdaterIntentService;
 import com.appinforium.newthinktanktutorials.service.PlaylistUpdaterIntentService;
@@ -66,6 +74,7 @@ public class MainActivity extends Activity implements
     private DrawerLayout drawerLayout;
     private ListView drawerListView;
 
+    private ButteryProgressBar progressBar;
     private ActionBarDrawerToggle drawerToggle;
     // nav drawer title
     private CharSequence drawerTitle;
@@ -87,7 +96,33 @@ public class MainActivity extends Activity implements
 
         setContentView(R.layout.activity_main);
 
-        setProgressBarIndeterminateVisibility(true);
+        // create new ProgressBar and style it
+        progressBar = new ButteryProgressBar(this);
+
+        progressBar.setLayoutParams(new ActionBar.LayoutParams(ActionBar.LayoutParams.MATCH_PARENT, 24));
+        // retrieve the top view of our application
+        final FrameLayout decorView = (FrameLayout) getWindow().getDecorView();
+        decorView.addView(progressBar);
+
+        // Here we try to position the ProgressBar to the correct position by looking
+        // at the position where content area starts. But during creating time, sizes
+        // of the components are not set yet, so we have to wait until the components
+        // has been laid out
+        // Also note that doing progressBar.setY(136) will not work, because of different
+        // screen densities and different sizes of actionBar
+        ViewTreeObserver observer = progressBar.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                View contentView = decorView.findViewById(android.R.id.content);
+                progressBar.setY(contentView.getY() - 0);
+
+                ViewTreeObserver observer = progressBar.getViewTreeObserver();
+                observer.removeGlobalOnLayoutListener(this);
+            }
+        });
+
+
         String[] navMenuTitles;
 
         ArrayList<NavDrawerItem> navDrawerItems;
@@ -135,13 +170,14 @@ public class MainActivity extends Activity implements
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setHomeButtonEnabled(true);
 
+
         if (savedInstanceState == null) {
             displayMenuFragment(TOPICS);
 //            Intent intent = new Intent(this, PlaylistsUpdaterIntentService.class);
 //            intent.putExtra(PlaylistsUpdaterIntentService.CHANNEL_ID,
 //                getResources().getString(R.string.channel_id));
 //            startService(intent);
-            Account account = CreateSyncAccount(this);
+            final Account account = CreateSyncAccount(this);
             Bundle settingsBundle = new Bundle();
             settingsBundle.putBoolean(
                     ContentResolver.SYNC_EXTRAS_MANUAL, true);
@@ -152,14 +188,34 @@ public class MainActivity extends Activity implements
          * manual sync settings
          */
 
-            ContentResolver.requestSync(account, AppDataContentProvider.AUTHORITY, settingsBundle);
 
-            ContentResolver.setSyncAutomatically(account, AppDataContentProvider.AUTHORITY, true);
-            ContentResolver.addPeriodicSync(account, AppDataContentProvider.AUTHORITY, new Bundle(), SYNC_INTERVAL);
 //            String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_TITLE};
 //            Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_VIDEOS, "1");
 //            Cursor cursor = getContentResolver().query(content_uri, projection, null, null, null);
 //            Log.d(DEBUG_TAG, "cursor: " + cursor.getCount());
+
+            // hide the progressBar
+            progressBar.setVisibility(View.GONE);
+
+//            ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE, new SyncStatusObserver() {
+//                @Override
+//                public void onStatusChanged(int i) {
+//                    Log.d(DEBUG_TAG, "onStatusChanged called");
+//                    if (ContentResolver.isSyncActive(account, AppDataContentProvider.AUTHORITY)) {
+//                        progressBar.setVisibility(View.VISIBLE);
+//                        Log.d(DEBUG_TAG, "syncActive");
+//                    } else {
+//                        progressBar.setVisibility(View.GONE);
+//                        Log.d(DEBUG_TAG, "syncNotActive");
+//                    }
+//                }
+//            });
+
+            ContentResolver.requestSync(account, AppDataContentProvider.AUTHORITY, settingsBundle);
+
+            ContentResolver.setSyncAutomatically(account, AppDataContentProvider.AUTHORITY, true);
+            ContentResolver.addPeriodicSync(account, AppDataContentProvider.AUTHORITY, new Bundle(), SYNC_INTERVAL);
+
         } else {
 
             FragmentManager fragmentManager = getFragmentManager();
@@ -172,6 +228,8 @@ public class MainActivity extends Activity implements
 
             setTitle(savedInstanceState.getString(TITLE));
         }
+
+
 
     }
 
@@ -406,6 +464,7 @@ public class MainActivity extends Activity implements
         super.onResume();
         registerReceiver(broadcastReceiver, new IntentFilter(PlaylistsUpdaterIntentService.NOTIFICATION));
         registerReceiver(broadcastReceiver, new IntentFilter(PlaylistUpdaterIntentService.NOTIFICATION));
+        registerReceiver(broadcastReceiver, new IntentFilter(NewThinkTankSyncAdapter.BROADCAST_ACTION));
     }
 
     @Override
@@ -504,13 +563,23 @@ public class MainActivity extends Activity implements
         public void onReceive(Context context, Intent intent) {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
-                int resultCode = bundle.getInt(PlaylistsUpdaterIntentService.RESULT);
-                if (resultCode == RESULT_OK) {
-                    Log.d(DEBUG_TAG, "Playlists updated");
-
-                } else {
-                    Toast.makeText(getApplicationContext(), "Playlists update failed", Toast.LENGTH_LONG).show();
+                if (intent.getAction() == NewThinkTankSyncAdapter.BROADCAST_ACTION) {
+                    int status = bundle.getInt(NewThinkTankSyncAdapter.STATUS);
+                    if (status == NewThinkTankSyncAdapter.RUNNING) {
+                        Log.d(DEBUG_TAG, "Youtube Sync running");
+                        progressBar.setVisibility(View.VISIBLE);
+                    } else if (status == NewThinkTankSyncAdapter.FINISHED) {
+                        Log.d(DEBUG_TAG, "Youtube Sync finished");
+                        progressBar.setVisibility(View.GONE);
+                    }
                 }
+//                int resultCode = bundle.getInt(PlaylistsUpdaterIntentService.RESULT);
+//                if (resultCode == RESULT_OK) {
+//                    Log.d(DEBUG_TAG, "Playlists updated");
+//
+//                } else {
+//                    Toast.makeText(getApplicationContext(), "Playlists update failed", Toast.LENGTH_LONG).show();
+//                }
 
 //                setProgressBarIndeterminateVisibility(false);
             }
