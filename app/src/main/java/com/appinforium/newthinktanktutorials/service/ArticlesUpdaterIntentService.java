@@ -23,8 +23,10 @@ import java.util.ArrayList;
 public class ArticlesUpdaterIntentService extends IntentService {
 
     private static final String DEBUG_TAG = "ArticlesUpdaterIntentService";
-    public static final String NOTIFICATION = "com.appinforium.newthinktankcodingtutorials.service";
-    public static final String RESULT = "result";
+    public static final String BROADCAST_ACTION = "com.appinforium.newthinktankcodingtutorials.articleupdater";
+    public static final String STATUS = "status";
+    public static final int LOADING = 1;
+    public static final int FINISHED = 0;
 
 
     public ArticlesUpdaterIntentService() {
@@ -38,6 +40,8 @@ public class ArticlesUpdaterIntentService extends IntentService {
         String pubDate = null;
         String articleUrl = null;
         String description = null;
+
+        sendStatusBroadcast(LOADING);
 
         try {
             URL url = new URL("http://www.newthinktank.com/feed");
@@ -124,6 +128,8 @@ public class ArticlesUpdaterIntentService extends IntentService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        sendStatusBroadcast(FINISHED);
     }
 
     public InputStream getInputStream(URL url) {
@@ -132,5 +138,12 @@ public class ArticlesUpdaterIntentService extends IntentService {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    private void sendStatusBroadcast(int status) {
+        Intent intent = new Intent();
+        intent.setAction(BROADCAST_ACTION);
+        intent.putExtra(STATUS, status);
+        sendBroadcast(intent);
     }
 }

@@ -71,6 +71,8 @@ public class MainActivity extends Activity implements
                     SECONDS_PER_MINUTE *
                     MILLISECONDS_PER_SECOND;
 
+    private int loadingJobs = 0;
+
     private DrawerLayout drawerLayout;
     private ListView drawerListView;
 
@@ -451,6 +453,7 @@ public class MainActivity extends Activity implements
     }
 
 
+
     private class NavMenuClickListener implements ListView.OnItemClickListener {
 
         @Override
@@ -462,9 +465,9 @@ public class MainActivity extends Activity implements
 
     protected void onResume() {
         super.onResume();
-        registerReceiver(broadcastReceiver, new IntentFilter(PlaylistsUpdaterIntentService.NOTIFICATION));
-        registerReceiver(broadcastReceiver, new IntentFilter(PlaylistUpdaterIntentService.NOTIFICATION));
         registerReceiver(broadcastReceiver, new IntentFilter(NewThinkTankSyncAdapter.BROADCAST_ACTION));
+        registerReceiver(broadcastReceiver, new IntentFilter(WebViewFragment.BROADCAST_ACTION));
+        registerReceiver(broadcastReceiver, new IntentFilter(ArticlesUpdaterIntentService.BROADCAST_ACTION));
     }
 
     @Override
@@ -563,15 +566,46 @@ public class MainActivity extends Activity implements
         public void onReceive(Context context, Intent intent) {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
-                if (intent.getAction() == NewThinkTankSyncAdapter.BROADCAST_ACTION) {
+                if (intent.getAction().equals(NewThinkTankSyncAdapter.BROADCAST_ACTION)) {
                     int status = bundle.getInt(NewThinkTankSyncAdapter.STATUS);
                     if (status == NewThinkTankSyncAdapter.RUNNING) {
                         Log.d(DEBUG_TAG, "Youtube Sync running");
-                        progressBar.setVisibility(View.VISIBLE);
+//                        progressBar.setVisibility(View.VISIBLE);
+                        loadingJobs += 1;
                     } else if (status == NewThinkTankSyncAdapter.FINISHED) {
                         Log.d(DEBUG_TAG, "Youtube Sync finished");
-                        progressBar.setVisibility(View.GONE);
+//                        progressBar.setVisibility(View.GONE);
+                        loadingJobs -= 1;
                     }
+                }
+
+
+                if (intent.getAction().equals(WebViewFragment.BROADCAST_ACTION)) {
+                    int status = bundle.getInt(WebViewFragment.STATUS);
+                    if (status == WebViewFragment.LOADING) {
+//                        progressBar.setVisibility(View.VISIBLE);
+                        loadingJobs += 1;
+                    } else if (status == WebViewFragment.FINISHED) {
+//                        progressBar.setVisibility(View.GONE);
+                        loadingJobs -= 1;
+                    }
+                }
+
+                if (intent.getAction().equals(ArticlesUpdaterIntentService.BROADCAST_ACTION)) {
+                    int status = bundle.getInt(ArticlesUpdaterIntentService.STATUS);
+                    if (status == ArticlesUpdaterIntentService.LOADING) {
+//                        progressBar.setVisibility(View.VISIBLE);
+                        loadingJobs += 1;
+                    } else if (status == ArticlesUpdaterIntentService.FINISHED) {
+//                        progressBar.setVisibility(View.GONE);
+                        loadingJobs -= 1;
+                    }
+                }
+
+                if (loadingJobs > 0) {
+                    progressBar.setVisibility(View.VISIBLE);
+                } else {
+                    progressBar.setVisibility(View.GONE);
                 }
 //                int resultCode = bundle.getInt(PlaylistsUpdaterIntentService.RESULT);
 //                if (resultCode == RESULT_OK) {
