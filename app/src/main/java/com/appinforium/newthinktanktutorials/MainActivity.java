@@ -59,6 +59,7 @@ public class MainActivity extends Activity implements
 
     private static final String DEBUG_TAG = "MainActivity";
     private static final String TITLE = "TITLE";
+    private static final String LOADING_QUEUE = "LOADING_QUEUE";
     private static final String ACCOUNT = "dummyaccount";
     private static final String ACCOUNT_TYPE = "com.appinforium.newthinktanktutorials";
 
@@ -190,28 +191,8 @@ public class MainActivity extends Activity implements
          * manual sync settings
          */
 
-
-//            String[] projection = {AppDatabase.COL_ID, AppDatabase.COL_TITLE};
-//            Uri content_uri = Uri.withAppendedPath(AppDataContentProvider.CONTENT_URI_VIDEOS, "1");
-//            Cursor cursor = getContentResolver().query(content_uri, projection, null, null, null);
-//            Log.d(DEBUG_TAG, "cursor: " + cursor.getCount());
-
             // hide the progressBar
             progressBar.setVisibility(View.GONE);
-
-//            ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE, new SyncStatusObserver() {
-//                @Override
-//                public void onStatusChanged(int i) {
-//                    Log.d(DEBUG_TAG, "onStatusChanged called");
-//                    if (ContentResolver.isSyncActive(account, AppDataContentProvider.AUTHORITY)) {
-//                        progressBar.setVisibility(View.VISIBLE);
-//                        Log.d(DEBUG_TAG, "syncActive");
-//                    } else {
-//                        progressBar.setVisibility(View.GONE);
-//                        Log.d(DEBUG_TAG, "syncNotActive");
-//                    }
-//                }
-//            });
 
             ContentResolver.requestSync(account, AppDataContentProvider.AUTHORITY, settingsBundle);
 
@@ -228,6 +209,12 @@ public class MainActivity extends Activity implements
                 drawerToggle.setDrawerIndicatorEnabled(false);
             }
 
+            loadingJobs = savedInstanceState.getInt(LOADING_QUEUE);
+            if (loadingJobs > 0) {
+                progressBar.setVisibility(View.VISIBLE);
+            } else {
+                progressBar.setVisibility(View.GONE);
+            }
             setTitle(savedInstanceState.getString(TITLE));
         }
 
@@ -473,6 +460,7 @@ public class MainActivity extends Activity implements
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString(TITLE, String.valueOf(getActionBar().getTitle()));
+        outState.putInt(LOADING_QUEUE, loadingJobs);
         super.onSaveInstanceState(outState);
 
     }

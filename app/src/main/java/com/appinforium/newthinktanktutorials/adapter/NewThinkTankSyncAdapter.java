@@ -3,6 +3,7 @@ package com.appinforium.newthinktanktutorials.adapter;
 import android.accounts.Account;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentValues;
@@ -15,6 +16,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.appinforium.newthinktanktutorials.MainActivity;
 import com.appinforium.newthinktanktutorials.R;
 import com.appinforium.newthinktanktutorials.data.AppDataContentProvider;
 import com.appinforium.newthinktanktutorials.data.AppDatabase;
@@ -182,6 +184,8 @@ public class NewThinkTankSyncAdapter extends AbstractThreadedSyncAdapter {
         String nTitle;
         String nContentText;
         if (notificationStrings.size() > 0) {
+
+
             if (notificationStrings.size() == 1) {
                 nTitle = "New Think Tank has posted a new video";
                 nContentText =  notificationStrings.get(0);
@@ -190,10 +194,16 @@ public class NewThinkTankSyncAdapter extends AbstractThreadedSyncAdapter {
                 nContentText = notificationStrings.get(0) + " ...";
             }
 
+            Intent intent = new Intent(context, MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
             Notification n = new Notification.Builder(this.context)
                 .setContentTitle(nTitle)
                 .setContentText(nContentText)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
                 .setSmallIcon(R.drawable.ic_launcher).getNotification();
+
 
             notificationManager.notify(0, n);
         }
